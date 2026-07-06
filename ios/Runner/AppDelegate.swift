@@ -7,10 +7,13 @@ import UIKit
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
+    GeneratedPluginRegistrant.register(with: self)
+    SetFlutterDownloaderPluginRegistrantCallback()
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }
 
   func didInitializeImplicitFlutterEngine(_ engineBridge: FlutterImplicitEngineBridge) {
-    GeneratedPluginRegistrant.register(with: engineBridge.pluginRegistry)
+    // Avoid registering plugins here to prevent duplicate registrations.
+    // Plugins are registered in `application(_:didFinishLaunchingWithOptions:)`.
   }
 }

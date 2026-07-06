@@ -1,17 +1,23 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:flutter_downloader/flutter_downloader.dart';
+import 'package:flutter/services.dart';
+// import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:network_events/screens/webview_screen.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:network_events/services/permission_service.dart';
 import 'package:network_events/services/push_notification_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  // Keep status bar transparent and match app theme to avoid white bar.
+  SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+    statusBarColor: Colors.transparent,
+    statusBarIconBrightness: Brightness.light,
+    statusBarBrightness: Brightness.dark,
+  ));
   
   // Initialize Flutter Downloader for file downloads
-  await FlutterDownloader.initialize(debug: true, ignoreSsl: true);
+  // await FlutterDownloader.initialize(debug: true, ignoreSsl: true);
   
   // Initialize Firebase (Requires google-services.json / GoogleService-Info.plist)
   try {
