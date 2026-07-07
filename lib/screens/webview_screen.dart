@@ -110,7 +110,10 @@ class _WebViewScreenState extends State<WebViewScreen> {
         }
       },
       child: Scaffold(
+        backgroundColor: const Color(0xFF0F172A), // Match web app dark background
         body: SafeArea(
+          top: false,
+          bottom: false,
           child: Stack(
             children: [
               InAppWebView(
