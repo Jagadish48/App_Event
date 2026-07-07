@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "963806832499",
+    "project_id": "event-management-44623",
+    "storage_bucket": "event-management-44623.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:963806832499:android:0cd93ffe509b0cc9868706",
+        "android_client_info": {
+          "package_name": "net.networkevents.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBhat12_Sd_1ysVetRWURDo14KyLs3syFg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

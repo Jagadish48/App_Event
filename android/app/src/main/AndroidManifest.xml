@@ -25,7 +25,7 @@
     <application
         android:label="NetworkEvents"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher"
+        android:icon="@mipmap/launcher_icon"
         android:usesCleartextTraffic="true"
         android:requestLegacyExternalStorage="true"
         android:hardwareAccelerated="true">
@@ -40,6 +40,18 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/provider_paths"/>
         </provider>
+
+        <!-- flutter_inappwebview FileProvider for Camera uploads -->
+        <provider
+            android:name="com.pichillilorenzo.flutter_inappwebview_android.InAppWebViewFileProvider"
+            android:authorities="${applicationId}.flutter_inappwebview_android.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/provider_paths" />
+        </provider>
+
 
         <activity
             android:name=".MainActivity"
