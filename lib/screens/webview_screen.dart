@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -41,6 +42,8 @@ class _WebViewScreenState extends State<WebViewScreen> {
   String url = "https://app.networkevents.net/";
   double progress = 0;
   bool isOffline = false;
+  Color scaffoldBgColor = const Color(0xFF0F172A);
+  Brightness iconBrightness = Brightness.light;
 
   @override
   void initState() {
@@ -171,7 +174,7 @@ class _WebViewScreenState extends State<WebViewScreen> {
         }
       },
       child: Scaffold(
-        backgroundColor: const Color(0xFF0F172A), // Match web app dark background
+        backgroundColor: scaffoldBgColor, // Dynamic background
         body: SafeArea(
           top: true,
           bottom: false,
@@ -184,6 +187,26 @@ class _WebViewScreenState extends State<WebViewScreen> {
                 pullToRefreshController: pullToRefreshController,
                 onWebViewCreated: (controller) {
                   webViewController = controller;
+                  
+                  controller.addJavaScriptHandler(handlerName: 'themeChange', callback: (args) {
+                    if (args.length >= 4) {
+                      bool isDark = args[3] as bool;
+                      
+                      if (!mounted) return;
+                      setState(() {
+                        // Hardcode the expected background colors because the web body might be transparent (rgb 0,0,0)
+                        scaffoldBgColor = isDark ? const Color(0xFF0F172A) : const Color(0xFFEBF2F8);
+                        iconBrightness = isDark ? Brightness.light : Brightness.dark;
+                        
+                        SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
+                          statusBarColor: Colors.transparent,
+                          systemNavigationBarColor: Colors.transparent,
+                          statusBarIconBrightness: iconBrightness,
+                          statusBarBrightness: isDark ? Brightness.dark : Brightness.light,
+                        ));
+                      });
+                    }
+                  });
                 },
                 onLoadStart: (controller, url) {
                   setState(() {
@@ -237,20 +260,40 @@ class _WebViewScreenState extends State<WebViewScreen> {
                     this.url = url.toString();
                   });
                   
-                  // Force camera app for file uploads instead of storage gallery
-                  // Injects a MutationObserver to catch dynamically rendered inputs in SPAs
+                  // Force camera app for file uploads and sync theme colors
                   await controller.evaluateJavascript(source: """
                     (function() {
+                      // 1. Camera Fix
                       function forceCamera() {
                         document.querySelectorAll('input[type="file"][accept*="image"]').forEach(function(el) {
                           if (!el.hasAttribute('capture')) {
-                            el.setAttribute('capture', 'user'); // 'user' for selfie, 'environment' for back camera
+                            el.setAttribute('capture', 'user');
                           }
                         });
                       }
-                      forceCamera(); // Run initially
-                      const observer = new MutationObserver(forceCamera);
-                      observer.observe(document.body, { childList: true, subtree: true });
+                      forceCamera();
+                      const camObserver = new MutationObserver(forceCamera);
+                      camObserver.observe(document.body, { childList: true, subtree: true });
+
+                      // 2. Theme Sync
+                      function sendTheme() {
+                        var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+                        var bgColor = window.getComputedStyle(document.body).backgroundColor;
+                        var rgb = bgColor.match(/\\d+/g);
+                        if (rgb && rgb.length >= 3 && window.flutter_inappwebview && window.flutter_inappwebview.callHandler) {
+                          window.flutter_inappwebview.callHandler('themeChange', parseInt(rgb[0]), parseInt(rgb[1]), parseInt(rgb[2]), isDark);
+                        }
+                      }
+                      sendTheme();
+                      const themeObserver = new MutationObserver(function(mutations) {
+                        mutations.forEach(function(m) {
+                          if (m.attributeName === 'data-theme' || m.attributeName === 'class') {
+                            sendTheme();
+                          }
+                        });
+                      });
+                      themeObserver.observe(document.documentElement, { attributes: true });
+                      themeObserver.observe(document.body, { attributes: true });
                     })();
                   """);
                 },
