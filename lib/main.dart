@@ -9,7 +9,8 @@ import 'package:network_events/services/push_notification_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  // Keep status bar transparent and match app theme to avoid white bar.
+  // Enable edge-to-edge — app draws behind system bars, no white bar
+  await SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
   SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
     statusBarColor: Colors.transparent,
     systemNavigationBarColor: Colors.transparent,

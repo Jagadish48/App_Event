@@ -1,9 +1,10 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:network_events/screens/offline_screen.dart';
+
 import 'package:network_events/services/permission_service.dart';
 import 'package:network_events/services/download_service.dart';
 
@@ -21,7 +22,7 @@ class _WebViewScreenState extends State<WebViewScreen> {
       isInspectable: true,
       mediaPlaybackRequiresUserGesture: false,
       allowsInlineMediaPlayback: true,
-      iframeAllow: "camera; microphone",
+      iframeAllow: "camera; microphone; geolocation",
       iframeAllowFullscreen: true,
       javaScriptEnabled: true,
       domStorageEnabled: true,
@@ -31,9 +32,12 @@ class _WebViewScreenState extends State<WebViewScreen> {
       displayZoomControls: false,
       // Cookie handling
       thirdPartyCookiesEnabled: true,
+      // Geolocation — required for location capture / geotagging
+      geolocationEnabled: true,
   );
 
   PullToRefreshController? pullToRefreshController;
+  late StreamSubscription<List<ConnectivityResult>> _connectivitySub;
   String url = "https://app.networkevents.net/";
   double progress = 0;
   bool isOffline = false;
@@ -42,16 +46,21 @@ class _WebViewScreenState extends State<WebViewScreen> {
   void initState() {
     super.initState();
     
+    // Proactively request Camera and Location permissions on startup.
+    // Android requires CAMERA permission to be granted at runtime before allowing
+    // the WebView to launch the camera via a file chooser intent.
+    PermissionService.requestPermissions();
+    
     // Check initial connectivity
-    Connectivity().checkConnectivity().then((result) {
-      if (result == ConnectivityResult.none) {
+    Connectivity().checkConnectivity().then((results) {
+      if (results.contains(ConnectivityResult.none)) {
         setState(() { isOffline = true; });
       }
     });
     
-    // Listen to connectivity changes
-    Connectivity().onConnectivityChanged.listen((ConnectivityResult result) {
-      if (result == ConnectivityResult.none) {
+    // Listen to connectivity changes — store subscription for cleanup
+    _connectivitySub = Connectivity().onConnectivityChanged.listen((List<ConnectivityResult> results) {
+      if (results.contains(ConnectivityResult.none)) {
         setState(() { isOffline = true; });
       } else {
         setState(() { isOffline = false; });
@@ -74,6 +83,12 @@ class _WebViewScreenState extends State<WebViewScreen> {
     );
   }
 
+  @override
+  void dispose() {
+    _connectivitySub.cancel();
+    super.dispose();
+  }
+
   // Handle Android Back button properly
   Future<bool> _goBack(BuildContext context) async {
     if (webViewController != null) {
@@ -88,24 +103,70 @@ class _WebViewScreenState extends State<WebViewScreen> {
   @override
   Widget build(BuildContext context) {
     if (isOffline) {
-      return OfflineScreen(onRetry: () {
-        Connectivity().checkConnectivity().then((result) {
-          if (result != ConnectivityResult.none) {
-            setState(() { isOffline = false; });
-            webViewController?.reload();
-          }
-        });
-      });
+      return Scaffold(
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(
+                  Icons.wifi_off_rounded,
+                  size: 100,
+                  color: Colors.grey,
+                ),
+                const SizedBox(height: 24),
+                const Text(
+                  'No Internet Connection',
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                const Text(
+                  'Please check your network settings and try again.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Colors.grey,
+                  ),
+                ),
+                const SizedBox(height: 32),
+                ElevatedButton.icon(
+                  onPressed: () {
+                    Connectivity().checkConnectivity().then((results) {
+                      if (!results.contains(ConnectivityResult.none)) {
+                        setState(() { isOffline = false; });
+                        webViewController?.reload();
+                      }
+                    });
+                  },
+                  icon: const Icon(Icons.refresh),
+                  label: const Text('Try Again'),
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 32,
+                      vertical: 12,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
     }
 
     return PopScope(
       canPop: false,
-      onPopInvoked: (didPop) async {
+      onPopInvokedWithResult: (didPop, result) async {
         if (didPop) return;
         final shouldPop = await _goBack(context);
         if (shouldPop && context.mounted) {
-          // If we can't go back in webview, pop the screen
-          // Use SystemNavigator.pop() or Navigator.pop(context)
           Navigator.of(context).pop();
         }
       },
@@ -129,12 +190,29 @@ class _WebViewScreenState extends State<WebViewScreen> {
                     this.url = url.toString();
                   });
                 },
-                // Handle runtime permissions for Camera/Mic/Storage directly from webview
+                // Handle runtime permissions for Camera/Mic/Location from the webview
                 onPermissionRequest: (controller, request) async {
-                  await PermissionService.requestPermissions();
-                  return PermissionResponse(
-                      resources: request.resources,
-                      action: PermissionResponseAction.GRANT);
+                  // Request native permissions for camera, mic, location
+                  final granted = await PermissionService.requestPermissions();
+                  
+                  if (granted) {
+                    return PermissionResponse(
+                        resources: request.resources,
+                        action: PermissionResponseAction.GRANT);
+                  } else {
+                    return PermissionResponse(
+                        resources: request.resources,
+                        action: PermissionResponseAction.DENY);
+                  }
+                },
+                // Android-specific: handle geolocation permission prompts from the WebView
+                onGeolocationPermissionsShowPrompt: (controller, origin) async {
+                  final locationGranted = await PermissionService.requestLocationPermission();
+                  return GeolocationPermissionShowPromptResponse(
+                    origin: origin,
+                    allow: locationGranted,
+                    retain: true,
+                  );
                 },
                 // Handle external vs internal link routing
                 shouldOverrideUrlLoading: (controller, navigationAction) async {
@@ -158,6 +236,23 @@ class _WebViewScreenState extends State<WebViewScreen> {
                   setState(() {
                     this.url = url.toString();
                   });
+                  
+                  // Force camera app for file uploads instead of storage gallery
+                  // Injects a MutationObserver to catch dynamically rendered inputs in SPAs
+                  await controller.evaluateJavascript(source: """
+                    (function() {
+                      function forceCamera() {
+                        document.querySelectorAll('input[type="file"][accept*="image"]').forEach(function(el) {
+                          if (!el.hasAttribute('capture')) {
+                            el.setAttribute('capture', 'user'); // 'user' for selfie, 'environment' for back camera
+                          }
+                        });
+                      }
+                      forceCamera(); // Run initially
+                      const observer = new MutationObserver(forceCamera);
+                      observer.observe(document.body, { childList: true, subtree: true });
+                    })();
+                  """);
                 },
                 onReceivedError: (controller, request, error) {
                   pullToRefreshController?.endRefreshing();

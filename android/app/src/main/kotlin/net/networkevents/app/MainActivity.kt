@@ -1,4 +1,4 @@
-package net.networkevents.network_events
+package net.networkevents.app
 
 import io.flutter.embedding.android.FlutterActivity
 
