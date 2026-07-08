@@ -13,11 +13,9 @@ void main() async {
   await SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
   SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
     statusBarColor: Colors.transparent,
-    statusBarIconBrightness: Brightness.dark, // dark icons for light backgrounds
-    statusBarBrightness: Brightness.light,    // iOS: light status bar content
     systemNavigationBarColor: Colors.transparent,
-    systemNavigationBarIconBrightness: Brightness.dark,
-    systemNavigationBarContrastEnforced: false,
+    statusBarIconBrightness: Brightness.light,
+    statusBarBrightness: Brightness.dark,
   ));
   
   // Initialize Flutter Downloader for file downloads
