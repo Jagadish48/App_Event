@@ -2,29 +2,29 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>API_KEY</key>
-	<string>AIzaSyCiNKQXx6BmwzT7vGtgyZD2OASSHODSXaY</string>
-	<key>GCM_SENDER_ID</key>
-	<string>963806832499</string>
-	<key>PLIST_VERSION</key>
-	<string>1</string>
-	<key>BUNDLE_ID</key>
-	<string>net.networkevents.app</string>
-	<key>PROJECT_ID</key>
-	<string>event-management-44623</string>
-	<key>STORAGE_BUCKET</key>
-	<string>event-management-44623.firebasestorage.app</string>
-	<key>IS_ADS_ENABLED</key>
-	<false></false>
-	<key>IS_ANALYTICS_ENABLED</key>
-	<false></false>
-	<key>IS_APPINVITE_ENABLED</key>
-	<true></true>
-	<key>IS_GCM_ENABLED</key>
-	<true></true>
-	<key>IS_SIGNIN_ENABLED</key>
-	<true></true>
-	<key>GOOGLE_APP_ID</key>
-	<string>1:963806832499:ios:7fbe0d577115a1fc868706</string>
+    <key>API_KEY</key>
+    <string>AIzaSyCiNKQXx6BmwzT7vGtgyZD2OASSHODSXaY</string>
+    <key>GCM_SENDER_ID</key>
+    <string>963806832499</string>
+    <key>PLIST_VERSION</key>
+    <string>1</string>
+    <key>BUNDLE_ID</key>
+    <string>net.networkevents.app</string>
+    <key>PROJECT_ID</key>
+    <string>event-management-44623</string>
+    <key>STORAGE_BUCKET</key>
+    <string>event-management-44623.firebasestorage.app</string>
+    <key>IS_ADS_ENABLED</key>
+    <false></false>
+    <key>IS_ANALYTICS_ENABLED</key>
+    <false></false>
+    <key>IS_APPINVITE_ENABLED</key>
+    <true></true>
+    <key>IS_GCM_ENABLED</key>
+    <true></true>
+    <key>IS_SIGNIN_ENABLED</key>
+    <true></true>
+    <key>GOOGLE_APP_ID</key>
+    <string>1:963806832499:ios:7fbe0d577115a1fc868706</string>
 </dict>
 </plist>

@@ -30,9 +30,6 @@ flutter_ios_podfile_setup
 target 'Runner' do
   use_modular_headers!
 
-  pod 'Firebase/CoreOnly', '10.25.0', :modular_headers => true
-  pod 'Firebase/Messaging', '10.25.0', :modular_headers => true
-
   flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
 end
 

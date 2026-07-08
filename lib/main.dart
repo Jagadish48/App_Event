@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-// import 'package:flutter_downloader/flutter_downloader.dart';
+import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:network_events/screens/webview_screen.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -19,7 +19,7 @@ void main() async {
   ));
   
   // Initialize Flutter Downloader for file downloads
-  // await FlutterDownloader.initialize(debug: true, ignoreSsl: true);
+  await FlutterDownloader.initialize(debug: true, ignoreSsl: true);
   
   // Initialize Firebase (Requires google-services.json / GoogleService-Info.plist)
   try {
@@ -30,7 +30,7 @@ void main() async {
   }
   
   if (Platform.isAndroid) {
-    await AndroidInAppWebViewController.setWebContentsDebuggingEnabled(true);
+    await InAppWebViewController.setWebContentsDebuggingEnabled(true);
   }
 
   runApp(const NetworkEventsApp());
